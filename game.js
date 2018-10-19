@@ -1,4 +1,4 @@
-import 'phaser';
+//TODO: add regenerated flag for world creation
 
 var config = {
     type: Phaser.AUTO,
@@ -35,6 +35,7 @@ let hole_coordinates = {
 
 let player;
 let is_digging = false;
+let is_regenerated = false;
 
 function preload() {
   // Import all graphics assets
@@ -203,7 +204,20 @@ function regenerate_world() {
     console.log("The world was regenerated");
   })
   // player.y -= 400;
+
+  // Here we delete some blocks upper
+  blocks.children.iterate(function (dead) {
+    if(dead.y < -16) {
+      dead.disableBody(true, true);
+      // blocks.remove(dead);
+
+      console.log('A block was removed');
+    }
+  });
+
 }
+
+
 
 
 function clickEmitter() {
