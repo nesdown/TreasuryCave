@@ -1,6 +1,6 @@
 //TODO: add regenerated flag for world creation
 
-var config = {
+window.config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
@@ -19,7 +19,8 @@ var config = {
 };
 
 // Control variables
-var mouse;
+window.mouse, window.game;
+// varmouse = window.mouse;
 var game = new Phaser.Game(config);
 var money = 0;
 let blocks, goldblocks, rockblocks, groundblocks;
