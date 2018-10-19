@@ -1,15 +1,16 @@
 import Ph from 'phaser';
 
-// let game = window.game;
-window.autor.create = function() {
+function outerCreate() {
+
 
 }
 
-config.scene.create = [create, create2];
+function outerUpdate() {
 
-// function() {
-//   console.log('kek');
-//   player.setBounce(0.01);
-// }
+}
 
-// let sprite = Ph.GameObjects.Sprite()
+function outerRender() {
+
+}
+
+export { outerCreate, outerUpdate, outerRender };

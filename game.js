@@ -1,24 +1,24 @@
 //TODO: add regenerated flag for world creation
+import { outerCreate } from './my-stuff';
+import Phaser from 'phaser';
 
 window.config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 300 },
-            debug: false
-        }
-    },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 300 },
+      debug: false
     }
+  },
+  scene: {
+    preload: preload,
+    create: create,
+    update: update
+  }
 };
-
-alert('kek');
 
 // Control variables
 window.mouse, window.game;
@@ -29,9 +29,9 @@ var luck = 1;
 let blocks, goldblocks, rockblocks, groundblocks;
 let gold, rock, ground, block;
 let hole_coordinates = {
-  first : [368, -16],
-  second : [368, 48],
-  third : [304, 48],
+  first: [368, -16],
+  second: [368, 48],
+  third: [304, 48],
   fourth: [304, 112],
   fifth: [368, 112],
   sixth: [432, 112]
@@ -48,12 +48,11 @@ function preload() {
   this.load.image('gold', 'assets/gold.png');
   this.load.image('rock', 'assets/rock.png');
 
-  this.load.spritesheet('character', 'assets/character3.png', {frameWidth: 55, frameHeight: 67});
+  this.load.spritesheet('character', 'assets/character3.png', { frameWidth: 55, frameHeight: 67 });
 }
 
 
 function create() {
-  window.outer.create();
 
   // Add a background
   this.add.image(400, 300, 'background');
@@ -78,36 +77,38 @@ function create() {
   // ANIMATIONS ARE SHOWN HERE
   // ---------------------
   this.anims.create({
-      key: 'breathe',
-      frames: this.anims.generateFrameNumbers('character', { start: 0, end: 3 }),
-      frameRate: 10,
-      repeat: -1
+    key: 'breathe',
+    frames: this.anims.generateFrameNumbers('character', { start: 0, end: 3 }),
+    frameRate: 10,
+    repeat: -1
   });
 
   this.anims.create({
-      key: 'kick',
-      frames: this.anims.generateFrameNumbers('character', { start: 4, end: 6 }),
-      frameRate: 10,
-      repeat: -1
+    key: 'kick',
+    frames: this.anims.generateFrameNumbers('character', { start: 4, end: 6 }),
+    frameRate: 10,
+    repeat: -1
   });
 
 
   // ---------------------
   // MOUSE INPUT CONTROLS HERE
   // ---------------------
-   this.input.on("pointerdown", clickEmitter, this);
+  this.input.on("pointerdown", clickEmitter, this);
+
+  
+  outerCreate();
 }
 
 
 function update() {
-  window.outer.update();
 
   if (!is_digging)
     player.anims.play('breathe', true);
 }
 
 function render() {
-  window.outer.render();
+
 }
 
 
@@ -117,44 +118,44 @@ function deleteOne() {
     try {
       // console.log(child.x + " " + child.y);
 
-      if(child.x == hole_coordinates.first[0] && child.y == hole_coordinates.first[1]) {
+      if (child.x == hole_coordinates.first[0] && child.y == hole_coordinates.first[1]) {
         child.disableBody(true, true);
         console.log('deleted 1');
         // return;
       }
 
-      if(child.x == hole_coordinates.second[0] && child.y == hole_coordinates.second[1]) {
+      if (child.x == hole_coordinates.second[0] && child.y == hole_coordinates.second[1]) {
         child.disableBody(true, true);
         console.log('deleted 2');
         // return;
       }
 
-      if(child.x == hole_coordinates.third[0] && child.y == hole_coordinates.third[1]) {
+      if (child.x == hole_coordinates.third[0] && child.y == hole_coordinates.third[1]) {
         child.disableBody(true, true);
         console.log('deleted 3');
         // return;
       }
 
-      if(child.x == hole_coordinates.fourth[0] && child.y == hole_coordinates.fourth[1]) {
+      if (child.x == hole_coordinates.fourth[0] && child.y == hole_coordinates.fourth[1]) {
         child.disableBody(true, true);
         console.log('deleted 4');
         // return;
       }
 
-      if(child.x == hole_coordinates.fifth[0] && child.y == hole_coordinates.fifth[1]) {
+      if (child.x == hole_coordinates.fifth[0] && child.y == hole_coordinates.fifth[1]) {
         child.disableBody(true, true);
         console.log('deleted 5');
         // return;
       }
 
-      if(child.x == hole_coordinates.sixth[0] && child.y == hole_coordinates.sixth[1]) {
+      if (child.x == hole_coordinates.sixth[0] && child.y == hole_coordinates.sixth[1]) {
         child.disableBody(true, true);
         console.log('deleted 6');
         // return;
       }
     }
 
-    catch(error) {
+    catch (error) {
       console.log(error);
     }
   });
@@ -209,7 +210,7 @@ function regenerate_world() {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-    platform.y -= 432; platform.body.y -= 432;  player.y -= 432;
+    platform.y -= 432; platform.body.y -= 432; player.y -= 432;
 
     console.log("The world was regenerated");
   })
@@ -217,7 +218,7 @@ function regenerate_world() {
 
   // Here we delete some blocks upper
   blocks.children.iterate(function (dead) {
-    if(dead.y < -16) {
+    if (dead.y < -16) {
       dead.disableBody(true, true);
       // blocks.remove(dead);
 
@@ -236,7 +237,7 @@ function clickEmitter() {
   player.anims.stop(null, true);
   player.anims.play('kick', true);
 
-  setTimeout(function() {
+  setTimeout(function () {
     console.log(player.x + " " + parseInt(player.y));
     blocks.children.iterate(function (child) {
       if (child.x == 368 && (child.y == (parseInt(player.y) + 65) || child.y == (parseInt(player.y) + 66))) {
@@ -261,7 +262,7 @@ function clickEmitter() {
 
   console.log('A click was emitted');
 
-  if(player.y > 400) {
+  if (player.y > 400) {
     console.log('Something has to happen!');
     if (!is_regenerated)
       regenerate_world();
