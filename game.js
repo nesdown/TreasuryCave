@@ -18,6 +18,8 @@ window.config = {
     }
 };
 
+alert('kek');
+
 // Control variables
 window.mouse, window.game;
 // varmouse = window.mouse;
