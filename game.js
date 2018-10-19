@@ -1,4 +1,5 @@
 //TODO: add regenerated flag for world creation
+//Data test
 
 window.config = {
     type: Phaser.AUTO,
@@ -16,6 +17,12 @@ window.config = {
         create: create,
         update: update
     }
+};
+
+window.outer = {
+  create(){},
+  update(){},
+  render(){}
 };
 
 // Control variables
