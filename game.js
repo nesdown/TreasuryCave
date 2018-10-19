@@ -172,12 +172,33 @@ function generateLayer() {
 
 
 function regenerate_world() {
+  // Here we generate a new part of the world
+  for (let y = 624; y < 1200; y += 64) {
+    for (let x = -16; x < 784; x += 64) {
+      let rand_seed = Phaser.Math.Between(0, 4000);
+
+      if (rand_seed % 5 == 0) {
+        blocks.create(x, y, 'rock').setOrigin(0, 0);
+      }
+
+      else if (rand_seed % 4 == 0) {
+        blocks.create(x, y, 'gold').setOrigin(0, 0);
+      }
+
+      else {
+        blocks.create(x, y, 'ground').setOrigin(0, 0);
+      }
+    }
+  }
+
+
   blocks.children.iterate(function (platform) {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
 
-    platform.y -= 500; platform.body.y -= 500;  player.y -= 500;
+    // Here we move the guys down
+    platform.y -= 432; platform.body.y -= 432;  player.y -= 432;
 
     console.log("The world was regenerated");
   })
