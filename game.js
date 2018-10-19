@@ -23,6 +23,7 @@ window.mouse, window.game;
 // varmouse = window.mouse;
 var game = new Phaser.Game(config);
 var money = 0;
+var luck = 1;
 let blocks, goldblocks, rockblocks, groundblocks;
 let gold, rock, ground, block;
 let hole_coordinates = {
@@ -50,7 +51,7 @@ function preload() {
 
 
 function create() {
-  // Initialize input way
+  window.outer.create();
 
   // Add a background
   this.add.image(400, 300, 'background');
@@ -97,8 +98,14 @@ function create() {
 
 
 function update() {
+  window.outer.update();
+
   if (!is_digging)
     player.anims.play('breathe', true);
+}
+
+function render() {
+  window.outer.render();
 }
 
 
@@ -216,6 +223,7 @@ function regenerate_world() {
     }
   });
 
+  is_regenerated = true;
 }
 
 
@@ -231,6 +239,8 @@ function clickEmitter() {
     blocks.children.iterate(function (child) {
       if (child.x == 368 && (child.y == (parseInt(player.y) + 65) || child.y == (parseInt(player.y) + 66))) {
         child.disableBody(true, true);
+        money += Phaser.Math.Between(0, 3) * luck;
+        console.log('You got money: ' + money);
         return;
       }
 
@@ -251,6 +261,10 @@ function clickEmitter() {
 
   if(player.y > 400) {
     console.log('Something has to happen!');
-    regenerate_world();
+    if (!is_regenerated)
+      regenerate_world();
   }
+
+  else
+    is_regenerated = false;
 }
