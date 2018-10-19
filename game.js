@@ -17,8 +17,9 @@ var config = {
 };
 
 // Control variables
-let mouse;
-let game = new Phaser.Game(config);
+var mouse;
+var game = new Phaser.Game(config);
+var money = 0;
 let blocks, goldblocks, rockblocks, groundblocks;
 let gold, rock, ground, block;
 let hole_coordinates = {
@@ -190,12 +191,11 @@ function regenerate_world() {
   }
 
 
+  // Here we move some blocks up
   blocks.children.iterate(function (platform) {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-
-    // Here we move the guys down
     platform.y -= 432; platform.body.y -= 432;  player.y -= 432;
 
     console.log("The world was regenerated");
