@@ -1,5 +1,5 @@
-//TODO: add regenerated flag for world creation
-//Data test
+//TODO: fix slow uploadment of regenerated world sources.
+//DONE: fixed bad blocks overlay process.
 
 window.config = {
     type: Phaser.AUTO,
@@ -190,7 +190,7 @@ function generateLayer() {
 
 function regenerate_world() {
   // Here we generate a new part of the world
-  for (let y = 624; y < 1200; y += 64) {
+  for (let y = 624; y < 1008; y += 64) {
     for (let x = -16; x < 784; x += 64) {
       let rand_seed = Phaser.Math.Between(0, 4000);
 
@@ -214,9 +214,9 @@ function regenerate_world() {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-    platform.y -= 432; platform.body.y -= 432;  player.y -= 432;
+    platform.y -= 320; platform.body.y -= 320;  player.y -= 320;
 
-    console.log("The world was regenerated");
+    console.log("The world was regenerated anew");
   })
   // player.y -= 400;
 
