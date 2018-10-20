@@ -1,6 +1,5 @@
-//TODO: add regenerated flag for world creation
-import { outerCreate } from './my-stuff';
-import Phaser from 'phaser';
+//TODO: fix slow uploadment of regenerated world sources.
+//DONE: fixed bad blocks overlay process.
 
 window.config = {
   type: Phaser.AUTO,
@@ -41,14 +40,21 @@ let player;
 let is_digging = false;
 let is_regenerated = false;
 
+let money_text;
+
 function preload() {
   // Import all graphics assets
   this.load.image('background', 'assets/shaht.png');
+
+  // Import block types
   this.load.image('ground', 'assets/ground.png');
   this.load.image('gold', 'assets/gold.png');
   this.load.image('rock', 'assets/rock.png');
 
-  this.load.spritesheet('character', 'assets/character3.png', { frameWidth: 55, frameHeight: 67 });
+  // Add UI elements
+  this.load.image('money_stat', 'assets/money_stat.png');
+
+  this.load.spritesheet('character', 'assets/character3.png', {frameWidth: 55, frameHeight: 67});
 }
 
 
@@ -71,7 +77,11 @@ function create() {
 
   this.physics.add.collider(player, blocks);
 
-
+  // ---------------------
+  // HERE WE DRAW A UI
+  // ---------------------
+  this.add.image(680, 60, 'money_stat');
+  money_text = this.add.text(655, 39, '  0  ', { fontSize: '40px', fill: '#fff' });
 
   // ---------------------
   // ANIMATIONS ARE SHOWN HERE
@@ -186,7 +196,7 @@ function generateLayer() {
 
 function regenerate_world() {
   // Here we generate a new part of the world
-  for (let y = 624; y < 1200; y += 64) {
+  for (let y = 624; y < 1008; y += 64) {
     for (let x = -16; x < 784; x += 64) {
       let rand_seed = Phaser.Math.Between(0, 4000);
 
@@ -210,11 +220,12 @@ function regenerate_world() {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-    platform.y -= 432; platform.body.y -= 432; player.y -= 432;
-
-    console.log("The world was regenerated");
+    platform.y -= 320; platform.body.y -= 320;  player.y -= 320;
   })
   // player.y -= 400;
+
+  // Just a log
+  console.log("The world was regenerated anew");
 
   // Here we delete some blocks upper
   blocks.children.iterate(function (dead) {
@@ -242,8 +253,22 @@ function clickEmitter() {
     blocks.children.iterate(function (child) {
       if (child.x == 368 && (child.y == (parseInt(player.y) + 65) || child.y == (parseInt(player.y) + 66))) {
         child.disableBody(true, true);
+
+        // Give him a money!!!
         money += Phaser.Math.Between(0, 3) * luck;
         console.log('You got money: ' + money);
+
+        if (money < 10)
+          money_text.setText('  ' + money + '  ');
+        else if (money >= 10 && money < 100)
+          money_text.setText(' ' + money + ' ');
+        else if (money >= 100 && money < 1000)
+          money_text.setText(' ' + money + ' ');
+        else if (money >= 1000 && money < 10000)
+          money_text.setText(' ' + money);
+        else
+          money_text.setText(money);
+
         return;
       }
 
