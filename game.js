@@ -1,5 +1,6 @@
 //TODO: fix slow uploadment of regenerated world sources.
 //DONE: fixed bad blocks overlay process.
+import Phaser from 'phaser';
 
 window.config = {
   type: Phaser.AUTO,
@@ -19,6 +20,13 @@ window.config = {
   }
 };
 
+import {
+  outerCreate,
+  outerPreload,
+  outerUpdate,
+  outerRender,
+} from './my-stuff';
+
 // Control variables
 window.mouse, window.game;
 // varmouse = window.mouse;
@@ -37,10 +45,18 @@ let hole_coordinates = {
 };
 
 let player;
+let player_stats = {
+  luck: 0,
+  equipment: 0,
+  hp: 0,
+}
 let is_digging = false;
 let is_regenerated = false;
 
+var background;
+
 let money_text;
+let lightning_text;
 
 function preload() {
   // Import all graphics assets
@@ -52,16 +68,25 @@ function preload() {
   this.load.image('rock', 'assets/rock.png');
 
   // Add UI elements
-  this.load.image('money_stat', 'assets/money_stat.png');
+  this.load.image('money_stat', 'assets/money-frame.png');
+  this.load.image('exp_stat', 'assets/exp-frame.png');
 
-  this.load.spritesheet('character', 'assets/character3.png', {frameWidth: 55, frameHeight: 67});
+  // other GUI stuff
+  // this.load.image('upgrade_frame', 'assets/upgrade-frame.png');
+  this.load.image('upgrades', 'assets/upgrades.png');
+  this.load.image('plus_button', 'assets/button-pressed.png');
+  // this.load.image('lightning', 'assets/lightning.png');
+  // this.load.image('coin', 'assets/coin.png');
+
+  this.load.spritesheet('character', 'assets/character3.png', { frameWidth: 55, frameHeight: 67 });
+
+  outerPreload.bind(this)();
 }
-
 
 function create() {
 
   // Add a background
-  this.add.image(400, 300, 'background');
+  background = this.add.image(400, 300, 'background').setInteractive();
 
   // Here generated a block static group of objects
   blocks = this.physics.add.staticGroup();
@@ -80,8 +105,7 @@ function create() {
   // ---------------------
   // HERE WE DRAW A UI
   // ---------------------
-  this.add.image(680, 60, 'money_stat');
-  money_text = this.add.text(655, 39, '  0  ', { fontSize: '40px', fill: '#fff' });
+  drawGUI.bind(this)();
 
   // ---------------------
   // ANIMATIONS ARE SHOWN HERE
@@ -104,10 +128,10 @@ function create() {
   // ---------------------
   // MOUSE INPUT CONTROLS HERE
   // ---------------------
-  this.input.on("pointerdown", clickEmitter, this);
+  background.on('pointerdown', clickEmitter, this);
+  // this.input.on("pointerdown", clickEmitter, this);
 
-  
-  outerCreate();
+  outerCreate.bind(this)();
 }
 
 
@@ -220,7 +244,7 @@ function regenerate_world() {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-    platform.y -= 320; platform.body.y -= 320;  player.y -= 320;
+    platform.y -= 320; platform.body.y -= 320; player.y -= 320;
   })
   // player.y -= 400;
 
@@ -237,9 +261,64 @@ function regenerate_world() {
     }
   });
 
+  // drawGUI();
   is_regenerated = true;
 }
 
+function drawGUI() {
+  let textTopOffset = 32;
+  let centerX = config.width / 2, centerY = config.height / 2;
+
+  const moneyImg = this.add.image(centerX, centerY, 'money_stat');
+  money_text = this.add.text(config.width - 145, textTopOffset, '  0  ', { fontSize: '40px', fill: '#fff' });
+
+  const expImg = this.add.image(centerX, centerY, 'exp_stat');
+
+  lightning_text = this.add.text(40, textTopOffset, '  0  ', { fontSize: '40px', fill: '#fff' });
+
+  this.add.image(config.width / 2, config.height / 2, 'upgrades');
+  // this.add.image(476 / 2, config.height - 140 / 2, 'upgrade_frame');
+
+  // let coinImg = this.add.image(config.width - 280, 55, 'coin')
+  // coinImg.scaleX = coinImg.scaleY = 0.5;
+
+  // let lightningImg = this.add.image(275, 55, 'lightning');
+  // lightningImg.scaleX = lightningImg.scaleY = 0.5;
+  // console.log(this.add);
+
+  const luckBtn = makeButton(this.add.image(211, 347, 'plus_button'), function () {
+    console.log('lol');
+  });
+
+  const equipBtn = makeButton(this.add.image(211, 452, 'plus_button'), function () {
+    console.log('lol');
+  });
+
+  const hpBtn = makeButton(this.add.image(211, 557, 'plus_button'), function () {
+    console.log('lol');
+  });
+
+}
+
+// setting up button from image
+function makeButton(button, callback, args) {
+  return button
+    .setInteractive()
+    .setAlpha(0.1)
+    .on('pointerover', function () {
+      this.setAlpha(1);
+    })
+    .on('pointerout', function () {
+      this.setAlpha(0.1);
+    })
+    .on('pointerdown', function () {
+      background.input.enabled = false;
+    })
+    .on('pointerup', function (e) {
+      callback.apply(this, args);
+      background.input.enabled = true;
+    });
+}
 
 
 
