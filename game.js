@@ -2,6 +2,8 @@
 //DONE: fixed bad blocks overlay process.
 import Phaser from 'phaser';
 
+const testMode = true;
+
 window.config = {
   type: Phaser.AUTO,
   width: 800,
@@ -31,8 +33,10 @@ import {
 window.mouse, window.game;
 // varmouse = window.mouse;
 var game = new Phaser.Game(config);
+
 var money = 0;
-var luck = 1;
+var lightnings = 0;
+
 let blocks, goldblocks, rockblocks, groundblocks;
 let gold, rock, ground, block;
 let hole_coordinates = {
@@ -46,17 +50,29 @@ let hole_coordinates = {
 
 let player;
 let player_stats = {
-  luck: 0,
-  equipment: 0,
-  hp: 0,
-}
+  luck: 1,
+  equipment: 1,
+  hp: 1,
+};
 let is_digging = false;
 let is_regenerated = false;
 
 var background;
+const bigFont = '40px \'Raleway\'';
+const smallFont = '15px \'Raleway\'';
 
 let money_text;
 let lightning_text;
+
+let luckPriceText, equipmentPriceText, hpPriceText;
+let luckProgress, equipmentProgress, hpProgress;
+const
+  priceLuckMultiplier = 100,
+  priceEquipmentMultiplier = 300,
+  priceHpMultiplier = 500,
+
+  LIGHTNING_PRICE = 100;
+
 
 function preload() {
   // Import all graphics assets
@@ -78,7 +94,17 @@ function preload() {
   // this.load.image('lightning', 'assets/lightning.png');
   // this.load.image('coin', 'assets/coin.png');
 
-  this.load.spritesheet('character', 'assets/character3.png', { frameWidth: 55, frameHeight: 67 });
+  this.load.spritesheet('character', 'assets/character3.png', {
+    frameWidth: 55, frameHeight: 67
+  });
+
+  this.load.spritesheet('plus_button2', 'assets/plus-button.png', {
+    frameWidth: 38, frameHeight: 38
+  });
+
+  this.load.spritesheet('progress', 'assets/upgrade-progress.png', {
+    frameWidth: 85, frameHeight: 38
+  });
 
   outerPreload.bind(this)();
 }
@@ -128,7 +154,7 @@ function create() {
   // ---------------------
   // MOUSE INPUT CONTROLS HERE
   // ---------------------
-  background.on('pointerdown', clickEmitter, this);
+  background.on('pointerdown', clickEmitter.bind(this), this);
   // this.input.on("pointerdown", clickEmitter, this);
 
   outerCreate.bind(this)();
@@ -270,13 +296,18 @@ function drawGUI() {
   let centerX = config.width / 2, centerY = config.height / 2;
 
   const moneyImg = this.add.image(centerX, centerY, 'money_stat');
-  money_text = this.add.text(config.width - 145, textTopOffset, '  0  ', { fontSize: '40px', fill: '#fff' });
+  moneyImg.depth = 1;
+  // moneyImg.setAlpha(0.3);
+  money_text = this.add.text(config.width - 145, textTopOffset, '  0  ',
+    { font: bigFont, fill: '#fff' });
 
   const expImg = this.add.image(centerX, centerY, 'exp_stat');
+  expImg.depth = 1;
 
-  lightning_text = this.add.text(40, textTopOffset, '  0  ', { fontSize: '40px', fill: '#fff' });
+  lightning_text = this.add.text(40, textTopOffset, '  0  ',
+    { font: bigFont, fill: '#fff' });
 
-  this.add.image(config.width / 2, config.height / 2, 'upgrades');
+  this.add.image(centerX, centerY, 'upgrades').depth = 1;
   // this.add.image(476 / 2, config.height - 140 / 2, 'upgrade_frame');
 
   // let coinImg = this.add.image(config.width - 280, 55, 'coin')
@@ -286,23 +317,75 @@ function drawGUI() {
   // lightningImg.scaleX = lightningImg.scaleY = 0.5;
   // console.log(this.add);
 
-  const luckBtn = makeButton(this.add.image(211, 347, 'plus_button'), function () {
-    console.log('lol');
+  const luckBtn = makeSprButton(this.add.sprite(211, 347, 'plus_button2'), function () {
+    if ((money >= +luckPriceText.text || testMode) && player_stats.luck < 6) {
+      console.log('luck improved!!!');
+      money -= player_stats.luck * priceLuckMultiplier;
+      player_stats.luck++;
+      updateMoney();
+    }
   });
 
-  const equipBtn = makeButton(this.add.image(211, 452, 'plus_button'), function () {
-    console.log('lol');
+  const equipBtn = makeSprButton(this.add.sprite(211, 452, 'plus_button2'), function () {
+    if ((money >= +equipmentPriceText.text || testMode) && player_stats.equipment < 6) {
+      console.log('player equipment improved!!!');
+      money -= player_stats.equipment * priceEquipmentMultiplier;
+      player_stats.equipment++;
+      updateMoney();
+    }
   });
 
-  const hpBtn = makeButton(this.add.image(211, 557, 'plus_button'), function () {
-    console.log('lol');
+  const hpBtn = makeSprButton(this.add.sprite(211, 557, 'plus_button2'), function () {
+    if ((money >= +hpPriceText.text || testMode) && player_stats.hp < 6) {
+      console.log('1 hp added!!!');
+      money -= player_stats.hp * priceHpMultiplier;
+      player_stats.hp++;
+      updateMoney();
+    }
   });
 
+  const addLightningBtn = makeSprButton(this.add.sprite(50, 100, 'plus_button2'), function () {
+    if (money >= LIGHTNING_PRICE) {
+      lightnings++;
+      money -= LIGHTNING_PRICE;
+      console.log('bought lightnings!!!');
+      updateMoney();
+    } else {
+      money_text.setColor('#f00');
+      // money_text.colors = ['']
+      setTimeout(() => {
+        money_text.setColor('#fff');
+      }, 500);
+    }
+  });
+  // addLightningBtn.scaleX = addLightningBtn.scaleY = 1.2;
+
+
+  luckPriceText = this.add.text(52, 349, '0',
+    { font: smallFont, fill: '#fff' });
+
+  equipmentPriceText = this.add.text(52, 454, '0',
+    { font: smallFont, fill: '#fff' });
+
+  hpPriceText = this.add.text(52, 560, '0',
+    { font: smallFont, fill: '#fff' });
+
+  luckPriceText.depth = equipmentPriceText.depth = hpPriceText.depth =
+    money_text.depth = lightning_text.depth = 2;
+
+  luckProgress = this.add.sprite(147, 348, 'progress');
+  equipmentProgress = this.add.sprite(147, 453, 'progress');
+  hpProgress = this.add.sprite(147, 558, 'progress');
+
+  luckProgress.depth = equipmentProgress.depth = hpProgress.depth = 2;
+
+  // luckPriceText = null;
+  updateMoney.bind(this)();
 }
 
 // setting up button from image
 function makeButton(button, callback, args) {
-  return button
+  button
     .setInteractive()
     .setAlpha(0.1)
     .on('pointerover', function () {
@@ -318,8 +401,33 @@ function makeButton(button, callback, args) {
       callback.apply(this, args);
       background.input.enabled = true;
     });
+
+  return button;
 }
 
+function makeSprButton(button, callback, args) {
+  button
+    .setInteractive()
+    .on('pointerover', function () {
+      this.setFrame(1);
+    })
+    .on('pointerout', function () {
+      this.setFrame(0);
+    })
+    .on('pointerdown', function () {
+      this.setFrame(2);
+      background.input.enabled = false;
+      this.scaleX = this.scaleY = 0.9;
+    })
+    .on('pointerup', function (e) {
+      callback.apply(this, args);
+      this.setFrame(1);
+      background.input.enabled = true;
+      this.scaleX = this.scaleY = 1;
+    }).depth = 2;
+
+  return button;
+}
 
 
 function clickEmitter() {
@@ -334,19 +442,10 @@ function clickEmitter() {
         child.disableBody(true, true);
 
         // Give him a money!!!
-        money += Phaser.Math.Between(0, 3) * luck;
+        money += Phaser.Math.Between(0, 3) * player_stats.luck;
         console.log('You got money: ' + money);
 
-        if (money < 10)
-          money_text.setText('  ' + money + '  ');
-        else if (money >= 10 && money < 100)
-          money_text.setText(' ' + money + ' ');
-        else if (money >= 100 && money < 1000)
-          money_text.setText(' ' + money + ' ');
-        else if (money >= 1000 && money < 10000)
-          money_text.setText(' ' + money);
-        else
-          money_text.setText(money);
+        updateMoney();
 
         return;
       }
@@ -370,8 +469,43 @@ function clickEmitter() {
     console.log('Something has to happen!');
     if (!is_regenerated)
       regenerate_world();
+    // drawGUI.bind(this)();
   }
 
   else
     is_regenerated = false;
+}
+
+function updateMoney() {
+  if (money < 10)
+    money_text.setText('  ' + money + '  ');
+  else if (money >= 10 && money < 100)
+    money_text.setText(' ' + money + ' ');
+  else if (money >= 100 && money < 1000)
+    money_text.setText(' ' + money + ' ');
+  else if (money >= 1000 && money < 10000)
+    money_text.setText(' ' + money);
+  else
+    money_text.setText(money);
+
+  lightning_text.setText(lightnings);
+
+  luckPriceText.setText(player_stats.luck < 6 ?
+    player_stats.luck * priceLuckMultiplier : 'FULL');
+  equipmentPriceText.setText(player_stats.equipment < 6 ?
+    player_stats.equipment * priceEquipmentMultiplier : 'FULL');
+  hpPriceText.setText(player_stats.hp < 6 ?
+    player_stats.hp * priceHpMultiplier : 'FULL');
+
+  luckProgress.setFrame(player_stats.luck - 1);
+  equipmentProgress.setFrame(player_stats.equipment - 1);
+  hpProgress.setFrame(player_stats.hp - 1);
+}
+
+function throwStone() {
+  player_stats.hp--;
+  if (player_stats.hp <= 0) {
+    // DIE!!!!!!
+    
+  }
 }
