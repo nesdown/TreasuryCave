@@ -7,9 +7,10 @@ var $form = $('form#mainform'),
 
 $('#submit-form').on('click', function(e) {
   e.preventDefault();
-  player_name = document.getElementById('nickname');
-  player_phone = document.getElementById('phone');
+  player_name = document.getElementById('nickname').value;
+  player_phone = document.getElementById('phone').value;
   console.log(dateStr);
+  console.log(player_name + " " + player_phone);
 
   // var jqxhr = $.ajax({
   //   url: url,
@@ -23,15 +24,15 @@ $('#submit-form').on('click', function(e) {
   //   }
   // )
 
-  send_ajax(url, player_name, player_phone, '10');
+  send_ajax(url, player_name, player_phone, 10);
 });
 
 function send_ajax(url, nickname, phone, score) {
   var jqxhr = $.ajax({
     url: url,
-    method: "POST",
+    method: "GET",
     dataType: "json",
-    data: JSON.stringify({nickname: player_name, phone: player_phone, time: dateStr, score: energy_score})
+    data: {nickname: player_name, phone: player_phone, time: dateStr, score: score}
   }).success(
     // do something
     function(){
