@@ -24,7 +24,8 @@ $('#submit-form').on('click', function(e) {
   //   }
   // )
 
-  send_ajax(url, player_name, player_phone, 10);
+  // send_ajax(url, player_name, player_phone, 10);
+  show_instructions();
 });
 
 function send_ajax(url, nickname, phone, score) {
@@ -43,5 +44,21 @@ function send_ajax(url, nickname, phone, score) {
 
 
 function show_instructions() {
-  document.getElementById('mainform');
+  let element = document.getElementById('mainform');
+  element.parentNode.removeChild(element);
+  document.body.innerHTML += `
+      <div><h2 style='width:500px; font-size:16px; text-align:justify; margin-top: -20px;'>
+        <center><u><p style='font-size:24px;'>ПРАВИЛА ИГРЫ</p></u></center>
+        Lorem ipsum dolor sit amet consectetur sit amet consectetur sit amet
+        consectetur adipisicing elit. Molestias, fugit sit amet consectetur
+        sit amet consectetur Lorem ipsum dolor sit amet consectetur adipisicing elit.
+        Magni quos delectus nostrum officia? Dolores omnis aut cupiditate iusto sunt
+        ex molestias debitis suscipit ullam sed? Natus, esse quos? Ab illo neque autem et quod.
+        Numquam, quasi ab distinctio saepe consequuntur est voluptate earum facere, incidunt
+        quae esse. Suscipit, accusamus. Ipsum labore tempora voluptatibus hic dolor maxime
+        dolorum doloremque! Nostrum, eius!
+        <br>
+        <center><button id='submit-form' onclick='show_animation()'>Понятно, начинаем!</button></center>
+      </h2></div>
+  `;
 }
