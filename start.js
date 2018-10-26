@@ -40,3 +40,8 @@ function send_ajax(url, nickname, phone, score) {
     }
   )
 }
+
+
+function show_instructions() {
+  document.getElementById('mainform');
+}
