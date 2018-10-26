@@ -2,7 +2,7 @@
 //DONE: fixed bad blocks overlay process.
 import Phaser from 'phaser';
 
-const testMode = true;
+const testMode = false;
 
 window.config = {
   type: Phaser.AUTO,
@@ -31,8 +31,20 @@ import {
 
 // Control variables
 window.mouse, window.game;
+
+let clickCnt = 0;
+var game = null;
 // varmouse = window.mouse;
-var game = new Phaser.Game(config);
+var language = 'ru';
+var lang = {};
+
+var url = 'assets/translation-' + language + '.json';
+fetch(url, { method: 'GET' })
+  .then(data => data.json())
+  .then(data => {
+    lang = data;
+    game = new Phaser.Game(config);
+  });
 
 var money = 0;
 var lightnings = 0;
@@ -48,7 +60,7 @@ let hole_coordinates = {
   sixth: [432, 112]
 };
 
-let player;
+let player, stone;
 let player_stats = {
   luck: 1,
   equipment: 1,
@@ -60,12 +72,17 @@ let is_regenerated = false;
 var background;
 const bigFont = '40px \'Raleway\'';
 const smallFont = '15px \'Raleway\'';
+const midFont = '16px \'Raleway\'';
 
 let money_text;
 let lightning_text;
 
 let luckPriceText, equipmentPriceText, hpPriceText;
+let luckTitleText, equipmentTitleText, hpTitleText;
 let luckProgress, equipmentProgress, hpProgress;
+
+let aaa;
+
 const
   priceLuckMultiplier = 100,
   priceEquipmentMultiplier = 300,
@@ -105,6 +122,15 @@ function preload() {
   this.load.spritesheet('progress', 'assets/upgrade-progress.png', {
     frameWidth: 85, frameHeight: 38
   });
+
+  this.load.spritesheet('stone', 'assets/stonefall.png', {
+    frameWidth: 56, frameHeight: 56
+  });
+
+  this.load.image('modal', 'assets/exit-dialog.png');
+  this.load.image('button', 'assets/button.png');
+
+  this.load.audio('aaa', 'assets/aaaaa.mp3');
 
   outerPreload.bind(this)();
 }
@@ -150,12 +176,21 @@ function create() {
     repeat: -1
   });
 
+  this.anims.create({
+    key: 'stonefall',
+    frames: this.anims.generateFrameNumbers('stone', { start: 0, end: 8 }),
+    frameRate: 10,
+    repeat: -1
+  })
 
   // ---------------------
   // MOUSE INPUT CONTROLS HERE
   // ---------------------
   background.on('pointerdown', clickEmitter.bind(this), this);
   // this.input.on("pointerdown", clickEmitter, this);
+
+  aaa = this.sound.add('aaa');
+  // throwStone.bind(this)();
 
   outerCreate.bind(this)();
 }
@@ -292,7 +327,7 @@ function regenerate_world() {
 }
 
 function drawGUI() {
-  let textTopOffset = 32;
+  let textTopOffset = 30;
   let centerX = config.width / 2, centerY = config.height / 2;
 
   const moneyImg = this.add.image(centerX, centerY, 'money_stat');
@@ -370,6 +405,13 @@ function drawGUI() {
   hpPriceText = this.add.text(52, 560, '0',
     { font: smallFont, fill: '#fff' });
 
+  luckTitleText = this.add.text(105, 303, lang.upgrades.luck,
+    { font: smallFont, fill: '#fff' });
+  equipmentTitleText = this.add.text(105, 408, lang.upgrades.equipment,
+    { font: smallFont, fill: '#fff' });
+  hpTitleText = this.add.text(105, 513, lang.upgrades.hp,
+    { font: smallFont, fill: '#fff' });
+
   luckPriceText.depth = equipmentPriceText.depth = hpPriceText.depth =
     money_text.depth = lightning_text.depth = 2;
 
@@ -377,7 +419,8 @@ function drawGUI() {
   equipmentProgress = this.add.sprite(147, 453, 'progress');
   hpProgress = this.add.sprite(147, 558, 'progress');
 
-  luckProgress.depth = equipmentProgress.depth = hpProgress.depth = 2;
+  luckProgress.depth = equipmentProgress.depth = hpProgress.depth =
+    luckTitleText.depth = equipmentTitleText.depth = hpTitleText.depth = 2;
 
   // luckPriceText = null;
   updateMoney.bind(this)();
@@ -387,12 +430,12 @@ function drawGUI() {
 function makeButton(button, callback, args) {
   button
     .setInteractive()
-    .setAlpha(0.1)
+    .setAlpha(0.8)
     .on('pointerover', function () {
       this.setAlpha(1);
     })
     .on('pointerout', function () {
-      this.setAlpha(0.1);
+      this.setAlpha(0.8);
     })
     .on('pointerdown', function () {
       background.input.enabled = false;
@@ -429,25 +472,68 @@ function makeSprButton(button, callback, args) {
   return button;
 }
 
-
 function clickEmitter() {
+  clickCnt++;
+  if (clickCnt >= 200) {
+    const rnd = Math.random() > 0.6667;
+    if (rnd) {
+      throwStone.bind(this)();
+    }
+    clickCnt = 0;
+  }
+
   is_digging = true;
   player.anims.stop(null, true);
   player.anims.play('kick', true);
 
-  setTimeout(function () {
+  setTimeout(() => {
     console.log(player.x + " " + parseInt(player.y));
-    blocks.children.iterate(function (child) {
-      if (child.x == 368 && (child.y == (parseInt(player.y) + 65) || child.y == (parseInt(player.y) + 66))) {
-        child.disableBody(true, true);
 
-        // Give him a money!!!
-        money += Phaser.Math.Between(0, 3) * player_stats.luck;
-        console.log('You got money: ' + money);
+    blocks.children.iterate((child) => {
+      const dsBlock = (x, y) => {
+        if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) || child.y == (parseInt(player.y) + 66 + y))) {
+          child.disableBody(true, false);
+          this.add.tween({
+            targets: child,
+            ease: 'Sine.easeInOut',
+            duration: 500,
+            delay: 0,
+            alpha: {
+              getStart: () => 1,
+              getEnd: () => 0
+            },
+            onComplete: () => {
+              child.destroy();
+            }
+          });
 
-        updateMoney();
+          // Give him a money!!!
+          money += Phaser.Math.Between(0, 3) * player_stats.luck;
+          // console.log('You got money: ' + money);  
+          return;
+        }
+      };
 
-        return;
+
+      dsBlock(0, 0);
+      if (player_stats.equipment > 1) {
+        dsBlock(64, 0);
+        dsBlock(-64, 0);
+      }
+      if (player_stats.equipment > 2) {
+        dsBlock(0, 64);
+      }
+      if (player_stats.equipment > 3) {
+        dsBlock(-64, 64);
+        dsBlock(64, 64);
+      }
+      if (player_stats.equipment > 4) {
+        dsBlock(-128, 0);
+        dsBlock(128, 0);
+      }
+      if (player_stats.equipment > 5) {
+        dsBlock(-128, 64);
+        dsBlock(128, 64);
       }
 
       // if (child.x == 368 && child.y == 176)
@@ -458,9 +544,13 @@ function clickEmitter() {
       //
       // if (child.x == 432 && child.y == 176)
       //   child.disableBody(true, true);
+
+      updateMoney();
     });
 
     is_digging = false;
+
+    // aaa.play();
   }, 1000);
 
   console.log('A click was emitted');
@@ -491,11 +581,11 @@ function updateMoney() {
   lightning_text.setText(lightnings);
 
   luckPriceText.setText(player_stats.luck < 6 ?
-    player_stats.luck * priceLuckMultiplier : 'FULL');
+    player_stats.luck * priceLuckMultiplier : '—');
   equipmentPriceText.setText(player_stats.equipment < 6 ?
-    player_stats.equipment * priceEquipmentMultiplier : 'FULL');
+    player_stats.equipment * priceEquipmentMultiplier : '—');
   hpPriceText.setText(player_stats.hp < 6 ?
-    player_stats.hp * priceHpMultiplier : 'FULL');
+    player_stats.hp * priceHpMultiplier : '—');
 
   luckProgress.setFrame(player_stats.luck - 1);
   equipmentProgress.setFrame(player_stats.equipment - 1);
@@ -503,9 +593,63 @@ function updateMoney() {
 }
 
 function throwStone() {
-  player_stats.hp--;
-  if (player_stats.hp <= 0) {
-    // DIE!!!!!!
-    
-  }
+
+  stone = this.physics.add.sprite(368, -16, 'stone').setOrigin(-0.1, -0.02);
+  stone.anims.play('stonefall', true);
+  stone.setBounce(1);
+  this.physics.add.overlap(stone, blocks, function () {
+    console.log('kek');
+    player_stats.hp--;
+    this.add.tween({
+      targets: stone,
+      ease: 'Sine.easeInOut',
+      duration: 1000,
+      delay: 0,
+      alpha: {
+        getStart: () => 1,
+        getEnd: () => 0
+      },
+      onComplete: () => {
+        stone.destroy();
+      }
+    });
+    // this.add.tween(stone).to({ alpha: 0 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+    if (player_stats.hp <= 0) {
+      // DIE!!!!!!
+
+      const modal = this.add.image(config.width / 2, config.height / 2, 'modal');
+      modal.setInteractive();
+      modal.depth = 3;
+
+      const by = makeButton(this.add.image(400, 330, 'button'), function () {
+        console.log('restart');
+      });
+      const bn = makeButton(this.add.image(400, 380, 'button'), function () {
+        console.log('leave');
+      });
+      by.depth = bn.depth = 4;
+
+      const ttText = this.add.text(400, 228, lang.exitModal.title, {
+        font: '36px Helvetica', fill: '#000', fontWeight: '200', align: 'center'
+      });
+      ttText.setOrigin(0.5, 0.5);
+      ttText.depth = 5;
+
+      const yText = this.add.text(400, 328, lang.exitModal.yes, {
+        font: bigFont, fill: '#fff',
+      });
+      yText.setOrigin(0.5, 0.5);
+      yText.depth = 5;
+
+      const nText = this.add.text(400, 380, lang.exitModal.no, {
+        font: bigFont, fill: '#fff',
+      });
+      nText.setOrigin(0.5, 0.5);
+      nText.depth = 5;
+
+
+    }
+  }, null, this);
+
+  this.physics.add.collider(stone, blocks);
 }

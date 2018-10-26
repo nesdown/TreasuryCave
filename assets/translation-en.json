@@ -1,0 +1,12 @@
+{
+  "upgrades": {
+    "luck": "Luck",
+    "equipment": "Equipment",
+    "hp": "Hit points"
+  },
+  "exitModal": {
+    "title": "Game Over. Are you sure u wanna leave?",
+    "yes": "Yes",
+    "no": "No"
+  }
+}
