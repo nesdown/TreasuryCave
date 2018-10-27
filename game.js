@@ -1,8 +1,12 @@
 //TODO: fix slow uploadment of regenerated world sources.
 //DONE: fixed bad blocks overlay process.
 import Phaser from 'phaser';
+import dataLinker from './start';
 
 const testMode = false;
+window.gmFreezd = true;
+window.cll300 = false;
+let added300 = false;
 
 window.config = {
   type: Phaser.AUTO,
@@ -30,21 +34,31 @@ import {
 } from './my-stuff';
 
 // Control variables
-window.mouse, window.game;
+// window.mouse, window.game;
 
 let clickCnt = 0;
 var game = null;
 // varmouse = window.mouse;
-var language = 'ru';
+var _language = window.language ? window.language : 'ru';
 var lang = {};
 
-var url = 'assets/translation-' + language + '.json';
-fetch(url, { method: 'GET' })
-  .then(data => data.json())
-  .then(data => {
-    lang = data;
-    game = new Phaser.Game(config);
-  });
+var url = 'assets/translation-' + _language + '.json';
+
+$('#submit-form').on('click', function (e) {
+  e.preventDefault();
+
+  fetch(url, { method: 'GET' })
+    .then(data => data.json())
+    .then(data => {
+      lang = data;
+      game = new Phaser.Game(config);
+      // game.pause();
+      $('canvas').css('display', 'block');
+
+    });
+
+});
+
 
 var money = 0;
 var lightnings = 0;
@@ -81,7 +95,6 @@ let luckPriceText, equipmentPriceText, hpPriceText;
 let luckTitleText, equipmentTitleText, hpTitleText;
 let luckProgress, equipmentProgress, hpProgress;
 
-let aaa;
 
 const
   priceLuckMultiplier = 100,
@@ -130,12 +143,73 @@ function preload() {
   this.load.image('modal', 'assets/exit-dialog.png');
   this.load.image('button', 'assets/button.png');
 
-  this.load.audio('aaa', 'assets/aaaaa.mp3');
+  this.load.image('intro', 'assets/animation_picture.png');
+  this.load.spritesheet('walking', 'assets/digger_walk.png', {
+    frameWidth: 82, frameHeight: 64
+  });
+
 
   outerPreload.bind(this)();
 }
 
 function create() {
+  const intro = this.add.image(400, 300, 'intro');
+  intro.depth = 5;
+  intro.setInteractive();
+  const wdude = this.add.sprite(100, 380, 'walking');
+  wdude.depth = 6;
+  this.add.tween({
+    targets: wdude,
+    ease: 'Sine.linear',
+    duration: 2500,
+    delay: 0,
+    x: {
+      getStart: () => 100,
+      getEnd: () => 550,
+    },
+    onComplete: () => {
+      wdude.anims.stop();
+      this.add.tween({
+        targets: wdude,
+        ease: 'Sine.easeOut',
+        duration: 500,
+        delay: 0,
+        x: {
+          getStart: () => 550,
+          getEnd: () => 630,
+        },
+        y: {
+          getStart: () => 380,
+          getEnd: () => 350,
+        },
+        onComplete: () => {
+          this.add.tween({
+            targets: wdude,
+            ease: 'Sine.easeIn',
+            duration: 1000,
+            delay: 0,
+            x: {
+              getStart: () => 630,
+              getEnd: () => 630,
+            },
+            y: {
+              getStart: () => 350,
+              getEnd: () => 600,
+            },
+            onComplete: () => {
+              wdude.destroy()
+              intro.destroy();
+              player = this.physics.add.sprite(368, -16, 'character').setOrigin(-0.1, -0.02);
+              player.setBounce(0.2);
+              player.setCollideWorldBounds(true);
+
+              this.physics.add.collider(player, blocks);
+            }
+          });
+        }
+      });
+    }
+  });
 
   // Add a background
   background = this.add.image(400, 300, 'background').setInteractive();
@@ -147,12 +221,8 @@ function create() {
   deleteOne();
 
   // Here we create a player
-  player = this.physics.add.sprite(368, -16, 'character').setOrigin(-0.1, -0.02);
+  // player = this.physics.add.sprite(368, -16, 'character').setOrigin(-0.1, -0.02);
 
-  player.setBounce(0.2);
-  player.setCollideWorldBounds(true);
-
-  this.physics.add.collider(player, blocks);
 
   // ---------------------
   // HERE WE DRAW A UI
@@ -178,10 +248,18 @@ function create() {
 
   this.anims.create({
     key: 'stonefall',
-    frames: this.anims.generateFrameNumbers('stone', { start: 0, end: 8 }),
+    frames: this.anims.generateFrameNumbers('stone', { start: 0, end: 7 }),
     frameRate: 10,
     repeat: -1
-  })
+  });
+
+  this.anims.create({
+    key: 'walking',
+    frames: this.anims.generateFrameNumbers('walking', { start: 0, end: 2 }),
+    frameRate: 10,
+    repeat: -1
+  });
+  wdude.anims.play('walking', true);
 
   // ---------------------
   // MOUSE INPUT CONTROLS HERE
@@ -189,17 +267,27 @@ function create() {
   background.on('pointerdown', clickEmitter.bind(this), this);
   // this.input.on("pointerdown", clickEmitter, this);
 
-  aaa = this.sound.add('aaa');
   // throwStone.bind(this)();
 
   outerCreate.bind(this)();
+
+  // this.scene.resume();
 }
 
 
 function update() {
-
-  if (!is_digging)
+  if (!is_digging && player)
     player.anims.play('breathe', true);
+
+  if (window.cll300) {
+    added300 = true;
+    money += 300;
+    updateMoney();
+  }
+  // if (!window.gmFreezd) {
+  //   console.log('res');
+  //   this.scene.resume();
+  // }
 }
 
 function render() {
@@ -616,16 +704,25 @@ function throwStone() {
     // this.add.tween(stone).to({ alpha: 0 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
     if (player_stats.hp <= 0) {
       // DIE!!!!!!
+      endGame();
 
       const modal = this.add.image(config.width / 2, config.height / 2, 'modal');
       modal.setInteractive();
       modal.depth = 3;
 
       const by = makeButton(this.add.image(400, 330, 'button'), function () {
-        console.log('restart');
+        window.location.replace('index.html');
       });
       const bn = makeButton(this.add.image(400, 380, 'button'), function () {
-        console.log('leave');
+        // console.log(this.scene);
+        location.reload()
+
+        // this.scene.restart();
+        // game.scene.stop();
+        // game.destroy();
+        // $('canvas').first().remove();
+        // game = new Phaser.Game(config)
+        // game.scene.start(config);
       });
       by.depth = bn.depth = 4;
 
@@ -652,4 +749,8 @@ function throwStone() {
   }, null, this);
 
   this.physics.add.collider(stone, blocks);
+}
+
+function endGame() {
+  dataLinker(lightnings);
 }

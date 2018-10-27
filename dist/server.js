@@ -5,7 +5,7 @@ const fs = require('fs');
 
 http.createServer((req, res) => {
   let path = req.url === '/' ? 'index.html' : '.' + req.url;
-  path = path.replace(/assets/, '../assets');
+  //path = path.replace(/assets/, '../assets');
   console.log(path);
   res.statusCode = 200;
   fs.readFile(path, (err, data) => {

@@ -21,7 +21,7 @@ module.exports = (env) => ({
   plugins: [
     new hwp({
       filename: 'index.html',
-      template: './index-template.html'
+      template: './start.html'
     })
   ],
   devtool: 'source-map',
@@ -30,5 +30,10 @@ module.exports = (env) => ({
     port: 8080,
     overlay: true,
     stats: 'minimal',
+    // proxy: {
+    //   '/jquery-2.2.4.min.js': {
+    //     target: 'http://code.jquery.com'
+    //   }
+    // }
   }
 });

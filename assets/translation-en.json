@@ -5,8 +5,9 @@
     "hp": "Hit points"
   },
   "exitModal": {
-    "title": "Game Over. Are you sure u wanna leave?",
+    "title": "Game Over. Are you sure you wanna leave?",
     "yes": "Yes",
     "no": "No"
-  }
+  },
+  "waitPlz": "Do not leave, please. We'll give you 300 gold!"
 }

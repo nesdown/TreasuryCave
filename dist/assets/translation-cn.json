@@ -1,0 +1,13 @@
+{
+  "upgrades": {
+    "luck": "祝你好运",
+    "equipment": "配备",
+    "hp": "生活"
+  },
+  "exitModal": {
+    "title": "比赛结束了。 你想出去吗？",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "wait": "别走开 我们会给你300金币"
+}

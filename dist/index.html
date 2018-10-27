@@ -6,11 +6,24 @@
   <meta charset="UTF-8" />
   <title>Making your first Phaser 3 Game - Part 1</title>
   <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script> -->
-  <!-- <link href="https://fonts.googleapis.com/css?family=Raleway"
-    rel="stylesheet"> -->
+  <link rel="stylesheet"
+    type="text/css"
+    href="start.css">
+
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/raleway-cyrillic@4.0.2/raleway.min.css">
-  <style type="text/css">
+  <style>
+    body {
+      margin: 0px;
+    }
+    canvas {
+      display: none;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+    }
+  </style>
+  <!-- <style type="text/css">
     html {
       height: 100%;
     }
@@ -25,11 +38,30 @@
       background: #252525;
     }
 
-  </style>
+  </style> -->
+
 </head>
 
 <body>
-  <!-- <script type='text/javascript' src='game.js'></script> -->
+  <script src='http://code.jquery.com/jquery-2.2.4.min.js'></script>
+  <!-- <script src='serializeObject.js'></script> -->
+
+  <form class="wrapper"
+    id='mainform'>
+    <h1>Хочешь побороться за суперпризы?</h1>
+    <input id='nickname'
+      name='nickname'
+      placeholder="Введи свой ник">
+    <input id='phone'
+      name='phone'
+      type='tel'
+      placeholder="Введи номер телефона">
+    <center><button id='submit-form'>Начать игру!</button></center>
+    <center><a id='disclaimer'>Нет, спасибо, я просто поиграть</a></center>
+  </form>
+
+  <!-- <script type='text/javascript'
+    src='start.js'></script> -->
 
 <script type="text/javascript" src="bundle.js"></script></body>
 
