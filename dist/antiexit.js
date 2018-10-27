@@ -1,5 +1,6 @@
+var ww = document.getElementsByTagName('iframe')[0].contentWindow;
 window.addEventListener('click', function () {
-  if (window.gameStarted && !confirm(lang.waitPlz)) {
+  if (ww.gameStarted && !confirm(lang.waitPlz)) {
     location.replace('index.html');
   } else {
     cll300 = true;
