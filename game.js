@@ -54,19 +54,13 @@ $('#submit-form').on('click', function (e) {
         .then(data => data.json())
         .then(data => {
           lang = data;
+          window.gameStarted = true;
           game = new Phaser.Game(config);
           // game.pause();
           $('canvas').css('display', 'block')
             .on('click', function (e) {
               e.stopPropagation();
             });
-          $(window).on('click', function () {
-            if (!confirm(lang.waitPlz)) {
-              location.replace('index.html');
-            } else {
-              cll300 = true;
-            }
-          })
 
         });
 
