@@ -46,16 +46,32 @@ var url = 'assets/translation-' + _language + '.json';
 
 $('#submit-form').on('click', function (e) {
   e.preventDefault();
+  setTimeout(() => {
+    $('#submit-form-start').on('click', function (e) {
 
-  fetch(url, { method: 'GET' })
-    .then(data => data.json())
-    .then(data => {
-      lang = data;
-      game = new Phaser.Game(config);
-      // game.pause();
-      $('canvas').css('display', 'block');
+      e.preventDefault();
+      fetch(url, { method: 'GET' })
+        .then(data => data.json())
+        .then(data => {
+          lang = data;
+          game = new Phaser.Game(config);
+          // game.pause();
+          $('canvas').css('display', 'block')
+            .on('click', function (e) {
+              e.stopPropagation();
+            });
+          $(window).on('click', function () {
+            if (!confirm(lang.waitPlz)) {
+              location.replace('index.html');
+            } else {
+              cll300 = true;
+            }
+          })
+
+        });
 
     });
+  }, 100);
 
 });
 
@@ -279,7 +295,7 @@ function update() {
   if (!is_digging && player)
     player.anims.play('breathe', true);
 
-  if (window.cll300) {
+  if (!added300 && window.cll300) {
     added300 = true;
     money += 300;
     updateMoney();
