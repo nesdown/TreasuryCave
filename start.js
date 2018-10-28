@@ -21,33 +21,24 @@ $('#submit-form').on('click', function (e) {
   e.preventDefault();
   player_name = document.getElementById('nickname').value;
   player_phone = document.getElementById('phone').value;
-  window.doSendInfs
+  window.doSendInfs = true;
   console.log(dateStr);
   show_instructions();
+});
 
-  // var jqxhr = $.ajax({
-  //   url: url,
-  //   method: "GET",
-  //   dataType: "json",
-  //   data: $form.serializeObject(),
-  // }).success(
-  //   // do something
-  //   function(){
-  //     console.log($form.serializeObject())
-  //   }
-  // )
-
-  // send_ajax(url, player_name, player_phone, '10');
+$('#disclaimer').on('click', function() {
+  player_name = player_phone = undefined;
+  show_instructions();
 });
 
 
 function send_ajax(url, nickname, phone, score) {
-  if (player_name && player_phone) {
+  if (player_name && player_phone && window.doSendInfs) {
     var jqxhr = $.ajax({
       url: url,
       method: "GET",
       dataType: "json",
-      data: { nickname: player_name, phone: player_phone, time: dateStr, score: score }
+      data: { nickname, phone, time: dateStr, score: score }
     }).success(
       // do something
       function () {

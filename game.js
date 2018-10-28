@@ -3,7 +3,7 @@
 import Phaser from 'phaser';
 import dataLinker from './start';
 
-const testMode = false;
+const testMode = true;
 window.gmFreezd = true;
 window.cll300 = false;
 let added300 = false;
@@ -33,23 +33,27 @@ import {
   outerRender,
 } from './my-stuff';
 
-// Control variables
-// window.mouse, window.game;
-
 let clickCnt = 0;
 var game = null;
-// varmouse = window.mouse;
+
+const STONE_CRACKS = 2;
+const luckPrices = [100, 300, 600, 1200, 2400];
+const eqPrices = [300, 900, 1800, 3600, 7200];
+const hpPrices = [500, 1000, 3500, 7000, 10000];
+
+let stoneLife = STONE_CRACKS;
+
 var _language = window.language ? window.language : 'ru';
 var lang = {};
 
 var url = 'assets/translation-' + _language + '.json';
 
-$('#submit-form').on('click', function (e) {
+$('#submit-form, #disclaimer').on('click', function (e) {
   e.preventDefault();
   setTimeout(() => {
     $('#submit-form-start').on('click', function (e) {
-
       e.preventDefault();
+      $(this).blur();
       fetch(url, { method: 'GET' })
         .then(data => data.json())
         .then(data => {
@@ -69,6 +73,14 @@ $('#submit-form').on('click', function (e) {
 
 });
 
+window.onbeforeunload = function (e) {
+  e.returnValue = 'Are u sure?';
+  return 'are u sure?';
+}
+
+window.onunload = function () {
+  endGame();
+}
 
 var money = 0;
 var lightnings = 0;
@@ -110,7 +122,6 @@ const
   priceLuckMultiplier = 100,
   priceEquipmentMultiplier = 300,
   priceHpMultiplier = 500,
-
   LIGHTNING_PRICE = 100;
 
 
@@ -286,12 +297,12 @@ function create() {
 
 
 function update() {
-  if (!is_digging && player)
-    player.anims.play('breathe', true);
+  // if (!is_digging && player)
+  //   player.anims.play('breathe', true);
 
   if (!added300 && window.cll300) {
     added300 = true;
-    money += 300;
+    money += 150;
     updateMoney();
   }
   // if (!window.gmFreezd) {
@@ -379,7 +390,7 @@ function generateLayer() {
 
 function regenerate_world() {
   // Here we generate a new part of the world
-  for (let y = 624; y < 1008; y += 64) {
+  for (let y = 624; y < 1136; y += 64) {
     for (let x = -16; x < 784; x += 64) {
       let rand_seed = Phaser.Math.Between(0, 4000);
 
@@ -403,8 +414,10 @@ function regenerate_world() {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-    platform.y -= 320; platform.body.y -= 320; player.y -= 320;
+    platform.y -= 448;
+    platform.body.y -= 448;
   })
+  player.y -= 700;
   // player.y -= 400;
 
   // Just a log
@@ -412,11 +425,11 @@ function regenerate_world() {
 
   // Here we delete some blocks upper
   blocks.children.iterate(function (dead) {
-    if (dead.y < -16) {
-      dead.disableBody(true, true);
-      // blocks.remove(dead);
+    if (dead && dead.y < -16) {
+      // dead.disableBody(true, true);
+      // console.log(blocks.remove(dead, true, true) ? 'block removed' : 'block NOT removed');
 
-      console.log('A block was removed');
+      // console.log('A block was removed');
     }
   });
 
@@ -424,6 +437,7 @@ function regenerate_world() {
   is_regenerated = true;
 }
 
+// GUI drawing
 function drawGUI() {
   let textTopOffset = 30;
   let centerX = config.width / 2, centerY = config.height / 2;
@@ -453,7 +467,7 @@ function drawGUI() {
   const luckBtn = makeSprButton(this.add.sprite(211, 347, 'plus_button2'), function () {
     if ((money >= +luckPriceText.text || testMode) && player_stats.luck < 6) {
       console.log('luck improved!!!');
-      money -= player_stats.luck * priceLuckMultiplier;
+      money -= luckPrices[player_stats.luck - 1];
       player_stats.luck++;
       updateMoney();
     }
@@ -462,7 +476,7 @@ function drawGUI() {
   const equipBtn = makeSprButton(this.add.sprite(211, 452, 'plus_button2'), function () {
     if ((money >= +equipmentPriceText.text || testMode) && player_stats.equipment < 6) {
       console.log('player equipment improved!!!');
-      money -= player_stats.equipment * priceEquipmentMultiplier;
+      money -= eqPrices[player_stats.equipment - 1];
       player_stats.equipment++;
       updateMoney();
     }
@@ -471,27 +485,11 @@ function drawGUI() {
   const hpBtn = makeSprButton(this.add.sprite(211, 557, 'plus_button2'), function () {
     if ((money >= +hpPriceText.text || testMode) && player_stats.hp < 6) {
       console.log('1 hp added!!!');
-      money -= player_stats.hp * priceHpMultiplier;
+      money -= hpPrices[player_stats.hp - 1];
       player_stats.hp++;
       updateMoney();
     }
   });
-
-  const addLightningBtn = makeSprButton(this.add.sprite(50, 100, 'plus_button2'), function () {
-    if (money >= LIGHTNING_PRICE) {
-      lightnings++;
-      money -= LIGHTNING_PRICE;
-      console.log('bought lightnings!!!');
-      updateMoney();
-    } else {
-      money_text.setColor('#f00');
-      // money_text.colors = ['']
-      setTimeout(() => {
-        money_text.setColor('#fff');
-      }, 500);
-    }
-  });
-  // addLightningBtn.scaleX = addLightningBtn.scaleY = 1.2;
 
 
   luckPriceText = this.add.text(52, 349, '0',
@@ -572,6 +570,8 @@ function makeSprButton(button, callback, args) {
 
 function clickEmitter() {
   clickCnt++;
+
+  // throw stone if needed
   if (clickCnt >= 200) {
     const rnd = Math.random() > 0.6667;
     if (rnd) {
@@ -585,83 +585,96 @@ function clickEmitter() {
   player.anims.play('kick', true);
 
   setTimeout(() => {
-    console.log(player.x + " " + parseInt(player.y));
+    // console.log(player.x + " " + parseInt(player.y));
+    stoneLife--;
 
-    blocks.children.iterate((child) => {
-      const dsBlock = (x, y) => {
-        if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) || child.y == (parseInt(player.y) + 66 + y))) {
-          child.disableBody(true, false);
-          this.add.tween({
-            targets: child,
-            ease: 'Sine.easeInOut',
-            duration: 500,
-            delay: 0,
-            alpha: {
-              getStart: () => 1,
-              getEnd: () => 0
-            },
-            onComplete: () => {
-              child.destroy();
-            }
-          });
+    if (stoneLife <= 0) {
+      const addition = Phaser.Math.Between(0, 3) * player_stats.luck;
+      money += addition;
+      if (addition > 0 && money % 200 === 0) {
+        lightnings++;
+      }
 
-          // Give him a money!!!
-          money += Phaser.Math.Between(0, 3) * player_stats.luck;
-          // console.log('You got money: ' + money);  
-          return;
+      blocks.children.iterate((child) => {
+        const dsBlock = (x, y) => {
+          if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) || child.y == (parseInt(player.y) + 66 + y))) {
+            child.disableBody(true, false);
+            this.add.tween({
+              targets: child,
+              ease: 'Sine.easeInOut',
+              duration: 500,
+              delay: 0,
+              alpha: {
+                getStart: () => 1,
+                getEnd: () => 0
+              },
+              onComplete: () => {
+                child.destroy();
+              }
+            });
+
+            // Give him a money!!!
+            // console.log('You got money: ' + money);  
+            return;
+          }
+        };
+
+
+        dsBlock(0, 0);
+        if (player_stats.equipment > 1) {
+          dsBlock(64, 0);
+          dsBlock(-64, 0);
         }
-      };
+        if (player_stats.equipment > 2) {
+          dsBlock(0, 64);
+        }
+        if (player_stats.equipment > 3) {
+          dsBlock(-64, 64);
+          dsBlock(64, 64);
+        }
+        if (player_stats.equipment > 4) {
+          dsBlock(-128, 0);
+          dsBlock(128, 0);
+        }
+        if (player_stats.equipment > 5) {
+          dsBlock(-128, 64);
+          dsBlock(128, 64);
+        }
 
+        // if (child.x == 368 && child.y == 176)
+        //   child.disableBody(true, true);
+        //
+        // if (child.x == 304 && child.y == 176)
+        //   child.disableBody(true, true);
+        //
+        // if (child.x == 432 && child.y == 176)
+        //   child.disableBody(true, true);
 
-      dsBlock(0, 0);
-      if (player_stats.equipment > 1) {
-        dsBlock(64, 0);
-        dsBlock(-64, 0);
-      }
-      if (player_stats.equipment > 2) {
-        dsBlock(0, 64);
-      }
-      if (player_stats.equipment > 3) {
-        dsBlock(-64, 64);
-        dsBlock(64, 64);
-      }
-      if (player_stats.equipment > 4) {
-        dsBlock(-128, 0);
-        dsBlock(128, 0);
-      }
-      if (player_stats.equipment > 5) {
-        dsBlock(-128, 64);
-        dsBlock(128, 64);
-      }
-
-      // if (child.x == 368 && child.y == 176)
-      //   child.disableBody(true, true);
-      //
-      // if (child.x == 304 && child.y == 176)
-      //   child.disableBody(true, true);
-      //
-      // if (child.x == 432 && child.y == 176)
-      //   child.disableBody(true, true);
-
-      updateMoney();
-    });
+        updateMoney();
+      });
+      stoneLife = STONE_CRACKS;
+    }
 
     is_digging = false;
+    player.anims.play('breathe', true);
 
     // aaa.play();
+    if (player.y > 400) {
+      // console.log('Something has to happen!');
+      player.anims.stop(null, true);
+      if (!is_regenerated)
+        setTimeout(() => {
+          regenerate_world();
+        }, 500);
+    }
+
+    else
+      is_regenerated = false;
+
   }, 1000);
 
   console.log('A click was emitted');
 
-  if (player.y > 400) {
-    console.log('Something has to happen!');
-    if (!is_regenerated)
-      regenerate_world();
-    // drawGUI.bind(this)();
-  }
-
-  else
-    is_regenerated = false;
 }
 
 function updateMoney() {
@@ -679,11 +692,11 @@ function updateMoney() {
   lightning_text.setText(lightnings);
 
   luckPriceText.setText(player_stats.luck < 6 ?
-    player_stats.luck * priceLuckMultiplier : '—');
+    luckPrices[player_stats.luck - 1] : '—');
   equipmentPriceText.setText(player_stats.equipment < 6 ?
-    player_stats.equipment * priceEquipmentMultiplier : '—');
+    eqPrices[player_stats.equipment - 1] : '—');
   hpPriceText.setText(player_stats.hp < 6 ?
-    player_stats.hp * priceHpMultiplier : '—');
+    hpPrices[player_stats.hp - 1] : '—');
 
   luckProgress.setFrame(player_stats.luck - 1);
   equipmentProgress.setFrame(player_stats.equipment - 1);
