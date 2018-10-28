@@ -3,13 +3,13 @@
 import Phaser from 'phaser';
 import dataLinker from './start';
 
-const testMode = true;
+const testMode = false;
 window.gmFreezd = true;
 window.cll300 = false;
 let added300 = false;
 
 window.config = {
-  type: Phaser.AUTO,
+  type: Phaser.CANVAS,
   width: 800,
   height: 600,
   physics: {
@@ -40,6 +40,7 @@ const STONE_CRACKS = 2;
 const luckPrices = [100, 300, 600, 1200, 2400];
 const eqPrices = [300, 900, 1800, 3600, 7200];
 const hpPrices = [500, 1000, 3500, 7000, 10000];
+let crackTextures = [];
 
 let stoneLife = STONE_CRACKS;
 
@@ -169,6 +170,7 @@ function preload() {
     frameWidth: 82, frameHeight: 64
   });
 
+  this.load.image('crack', 'assets/crack.png');
 
   outerPreload.bind(this)();
 }
@@ -179,6 +181,8 @@ function create() {
   intro.setInteractive();
   const wdude = this.add.sprite(100, 380, 'walking');
   wdude.depth = 6;
+
+  // intro animation
   this.add.tween({
     targets: wdude,
     ease: 'Sine.linear',
@@ -190,6 +194,7 @@ function create() {
     },
     onComplete: () => {
       wdude.anims.stop();
+      wdude.setFrame(2);
       this.add.tween({
         targets: wdude,
         ease: 'Sine.easeOut',
@@ -218,7 +223,7 @@ function create() {
               getEnd: () => 600,
             },
             onComplete: () => {
-              wdude.destroy()
+              wdude.destroy();
               intro.destroy();
               player = this.physics.add.sprite(368, -16, 'character').setOrigin(-0.1, -0.02);
               player.setBounce(0.2);
@@ -587,17 +592,26 @@ function clickEmitter() {
   setTimeout(() => {
     // console.log(player.x + " " + parseInt(player.y));
     stoneLife--;
+    console.log(stoneLife);
 
-    if (stoneLife <= 0) {
-      const addition = Phaser.Math.Between(0, 3) * player_stats.luck;
-      money += addition;
-      if (addition > 0 && money % 200 === 0) {
-        lightnings++;
-      }
 
-      blocks.children.iterate((child) => {
-        const dsBlock = (x, y) => {
-          if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) || child.y == (parseInt(player.y) + 66 + y))) {
+    blocks.children.iterate((child) => {
+      const dsBlock = (x, y) => {
+        if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) || child.y == (parseInt(player.y) + 66 + y))) {
+          if (stoneLife > 0) {
+            const crTex = this.add.image(x + 368, y + player.y + 65, 'crack');
+            crTex.setOrigin(0, 0);
+            crackTextures.push(crTex);
+          } else {
+            crackTextures.forEach((tex) => tex.destroy());
+            crackTextures = [];
+
+            const addition = Phaser.Math.Between(0, 3) * player_stats.luck;
+            money += addition;
+            if (addition > 0 && money % 200 === 0) {
+              lightnings++;
+            }
+
             child.disableBody(true, false);
             this.add.tween({
               targets: child,
@@ -612,54 +626,45 @@ function clickEmitter() {
                 child.destroy();
               }
             });
-
-            // Give him a money!!!
-            // console.log('You got money: ' + money);  
-            return;
           }
-        };
+          return;
+        }
+      };
 
 
-        dsBlock(0, 0);
-        if (player_stats.equipment > 1) {
-          dsBlock(64, 0);
-          dsBlock(-64, 0);
-        }
-        if (player_stats.equipment > 2) {
-          dsBlock(0, 64);
-        }
-        if (player_stats.equipment > 3) {
-          dsBlock(-64, 64);
-          dsBlock(64, 64);
-        }
-        if (player_stats.equipment > 4) {
-          dsBlock(-128, 0);
-          dsBlock(128, 0);
-        }
-        if (player_stats.equipment > 5) {
-          dsBlock(-128, 64);
-          dsBlock(128, 64);
-        }
+      dsBlock(0, 0);
+      if (player_stats.equipment > 1) {
+        dsBlock(64, 0);
+        dsBlock(-64, 0);
+      }
+      if (player_stats.equipment > 2) {
+        dsBlock(0, 64);
+      }
+      if (player_stats.equipment > 3) {
+        dsBlock(-64, 64);
+        dsBlock(64, 64);
+      }
+      if (player_stats.equipment > 4) {
+        dsBlock(-128, 0);
+        dsBlock(128, 0);
+      }
+      if (player_stats.equipment > 5) {
+        dsBlock(-128, 64);
+        dsBlock(128, 64);
+      }
 
-        // if (child.x == 368 && child.y == 176)
-        //   child.disableBody(true, true);
-        //
-        // if (child.x == 304 && child.y == 176)
-        //   child.disableBody(true, true);
-        //
-        // if (child.x == 432 && child.y == 176)
-        //   child.disableBody(true, true);
-
-        updateMoney();
-      });
+      updateMoney();
+    });
+    if (stoneLife <= 0)
       stoneLife = STONE_CRACKS;
-    }
 
     is_digging = false;
+    player.anims.stop(null, true);
     player.anims.play('breathe', true);
 
+
     // aaa.play();
-    if (player.y > 400) {
+    if (player.y > 400 && stoneLife >= STONE_CRACKS) {
       // console.log('Something has to happen!');
       player.anims.stop(null, true);
       if (!is_regenerated)
@@ -672,6 +677,7 @@ function clickEmitter() {
       is_regenerated = false;
 
   }, 1000);
+
 
   console.log('A click was emitted');
 
