@@ -7,6 +7,7 @@ const testMode = false;
 window.gmFreezd = true;
 window.cll300 = false;
 let added300 = false;
+let shouldConfirmLeave = true;
 
 window.config = {
   type: Phaser.CANVAS,
@@ -34,6 +35,7 @@ import {
 } from './my-stuff';
 
 let clickCnt = 0;
+let clickBlocked = false;
 var game = null;
 
 const STONE_CRACKS = 2;
@@ -49,10 +51,10 @@ var lang = {};
 
 var url = 'assets/translation-' + _language + '.json';
 
-$('#submit-form, #disclaimer').on('click', function (e) {
+$('#submit-form, #disclaimer').on('click', function(e) {
   e.preventDefault();
   setTimeout(() => {
-    $('#submit-form-start').on('click', function (e) {
+    $('#submit-form-start').on('click', function(e) {
       e.preventDefault();
       $(this).blur();
       fetch(url, { method: 'GET' })
@@ -63,7 +65,7 @@ $('#submit-form, #disclaimer').on('click', function (e) {
           game = new Phaser.Game(config);
           // game.pause();
           $('canvas').css('display', 'block')
-            .on('click', function (e) {
+            .on('click', function(e) {
               e.stopPropagation();
             });
 
@@ -74,12 +76,14 @@ $('#submit-form, #disclaimer').on('click', function (e) {
 
 });
 
-window.onbeforeunload = function (e) {
-  e.returnValue = 'Are u sure?';
-  return 'are u sure?';
+window.onbeforeunload = function(e) {
+  if (shouldConfirmLeave) {
+    e.returnValue = 'Are u sure?';
+    return 'are u sure?';
+  }
 }
 
-window.onunload = function () {
+window.onunload = function() {
   endGame();
 }
 
@@ -163,6 +167,7 @@ function preload() {
   });
 
   this.load.image('modal', 'assets/exit-dialog.png');
+  this.load.image('modal-bg', 'assets/exit-dialog-bg.png');
   this.load.image('button', 'assets/button.png');
 
   this.load.image('intro', 'assets/animation_picture.png');
@@ -290,7 +295,11 @@ function create() {
   // ---------------------
   // MOUSE INPUT CONTROLS HERE
   // ---------------------
-  background.on('pointerdown', clickEmitter.bind(this), this);
+  background.on('pointerdown', () => {
+    if (!clickBlocked) {
+      clickEmitter.bind(this)();
+    }
+  }, this);
   // this.input.on("pointerdown", clickEmitter, this);
 
   // throwStone.bind(this)();
@@ -323,43 +332,43 @@ function render() {
 
 // This one makes a hole at the beginning of a scene
 function deleteOne() {
-  blocks.children.iterate(function (child) {
+  blocks.children.iterate(function(child) {
     try {
       // console.log(child.x + " " + child.y);
 
       if (child.x == hole_coordinates.first[0] && child.y == hole_coordinates.first[1]) {
         child.disableBody(true, true);
-        console.log('deleted 1');
+        // console.log('deleted 1');
         // return;
       }
 
       if (child.x == hole_coordinates.second[0] && child.y == hole_coordinates.second[1]) {
         child.disableBody(true, true);
-        console.log('deleted 2');
+        // console.log('deleted 2');
         // return;
       }
 
       if (child.x == hole_coordinates.third[0] && child.y == hole_coordinates.third[1]) {
         child.disableBody(true, true);
-        console.log('deleted 3');
+        // console.log('deleted 3');
         // return;
       }
 
       if (child.x == hole_coordinates.fourth[0] && child.y == hole_coordinates.fourth[1]) {
         child.disableBody(true, true);
-        console.log('deleted 4');
+        // console.log('deleted 4');
         // return;
       }
 
       if (child.x == hole_coordinates.fifth[0] && child.y == hole_coordinates.fifth[1]) {
         child.disableBody(true, true);
-        console.log('deleted 5');
+        // console.log('deleted 5');
         // return;
       }
 
       if (child.x == hole_coordinates.sixth[0] && child.y == hole_coordinates.sixth[1]) {
         child.disableBody(true, true);
-        console.log('deleted 6');
+        // console.log('deleted 6');
         // return;
       }
     }
@@ -415,7 +424,7 @@ function regenerate_world() {
 
 
   // Here we move some blocks up
-  blocks.children.iterate(function (platform) {
+  blocks.children.iterate(function(platform) {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
@@ -429,7 +438,7 @@ function regenerate_world() {
   console.log("The world was regenerated anew");
 
   // Here we delete some blocks upper
-  blocks.children.iterate(function (dead) {
+  blocks.children.iterate(function(dead) {
     if (dead && dead.y < -16) {
       // dead.disableBody(true, true);
       // console.log(blocks.remove(dead, true, true) ? 'block removed' : 'block NOT removed');
@@ -469,7 +478,7 @@ function drawGUI() {
   // lightningImg.scaleX = lightningImg.scaleY = 0.5;
   // console.log(this.add);
 
-  const luckBtn = makeSprButton(this.add.sprite(211, 347, 'plus_button2'), function () {
+  const luckBtn = makeSprButton(this.add.sprite(211, 347, 'plus_button2'), function() {
     if ((money >= +luckPriceText.text || testMode) && player_stats.luck < 6) {
       console.log('luck improved!!!');
       money -= luckPrices[player_stats.luck - 1];
@@ -478,7 +487,7 @@ function drawGUI() {
     }
   });
 
-  const equipBtn = makeSprButton(this.add.sprite(211, 452, 'plus_button2'), function () {
+  const equipBtn = makeSprButton(this.add.sprite(211, 452, 'plus_button2'), function() {
     if ((money >= +equipmentPriceText.text || testMode) && player_stats.equipment < 6) {
       console.log('player equipment improved!!!');
       money -= eqPrices[player_stats.equipment - 1];
@@ -487,7 +496,7 @@ function drawGUI() {
     }
   });
 
-  const hpBtn = makeSprButton(this.add.sprite(211, 557, 'plus_button2'), function () {
+  const hpBtn = makeSprButton(this.add.sprite(211, 557, 'plus_button2'), function() {
     if ((money >= +hpPriceText.text || testMode) && player_stats.hp < 6) {
       console.log('1 hp added!!!');
       money -= hpPrices[player_stats.hp - 1];
@@ -532,16 +541,16 @@ function makeButton(button, callback, args) {
   button
     .setInteractive()
     .setAlpha(0.8)
-    .on('pointerover', function () {
+    .on('pointerover', function() {
       this.setAlpha(1);
     })
-    .on('pointerout', function () {
+    .on('pointerout', function() {
       this.setAlpha(0.8);
     })
-    .on('pointerdown', function () {
+    .on('pointerdown', function() {
       background.input.enabled = false;
     })
-    .on('pointerup', function (e) {
+    .on('pointerup', function(e) {
       callback.apply(this, args);
       background.input.enabled = true;
     });
@@ -552,18 +561,18 @@ function makeButton(button, callback, args) {
 function makeSprButton(button, callback, args) {
   button
     .setInteractive()
-    .on('pointerover', function () {
+    .on('pointerover', function() {
       this.setFrame(1);
     })
-    .on('pointerout', function () {
+    .on('pointerout', function() {
       this.setFrame(0);
     })
-    .on('pointerdown', function () {
+    .on('pointerdown', function() {
       this.setFrame(2);
       background.input.enabled = false;
       this.scaleX = this.scaleY = 0.9;
     })
-    .on('pointerup', function (e) {
+    .on('pointerup', function(e) {
       callback.apply(this, args);
       this.setFrame(1);
       background.input.enabled = true;
@@ -576,8 +585,12 @@ function makeSprButton(button, callback, args) {
 function clickEmitter() {
   clickCnt++;
 
+  clickBlocked = true;
+  setTimeout(() => {
+    clickBlocked = false;
+  }, 500);
   // throw stone if needed
-  if (clickCnt >= 200) {
+  if (clickCnt >= 2) {
     const rnd = Math.random() > 0.6667;
     if (rnd) {
       throwStone.bind(this)();
@@ -592,7 +605,6 @@ function clickEmitter() {
   setTimeout(() => {
     // console.log(player.x + " " + parseInt(player.y));
     stoneLife--;
-    console.log(stoneLife);
 
 
     blocks.children.iterate((child) => {
@@ -679,7 +691,7 @@ function clickEmitter() {
   }, 1000);
 
 
-  console.log('A click was emitted');
+  // console.log('A click was emitted');
 
 }
 
@@ -714,8 +726,7 @@ function throwStone() {
   stone = this.physics.add.sprite(368, -16, 'stone').setOrigin(-0.1, -0.02);
   stone.anims.play('stonefall', true);
   stone.setBounce(1);
-  this.physics.add.overlap(stone, blocks, function () {
-    console.log('kek');
+  this.physics.add.overlap(stone, blocks, function() {
     player_stats.hp--;
     this.add.tween({
       targets: stone,
@@ -734,44 +745,48 @@ function throwStone() {
     if (player_stats.hp <= 0) {
       // DIE!!!!!!
       endGame();
+      shouldConfirmLeave = false;
 
-      const modal = this.add.image(config.width / 2, config.height / 2, 'modal');
+      const modalBg =
+        this.add.image(config.width / 2, config.height / 2, 'modal-bg');
+      modalBg.setInteractive();
+      modalBg.depth = 3;
+      const modal =
+        this.add.image(config.width / 2, config.height / 2, 'modal');
       modal.setInteractive();
-      modal.depth = 3;
+      modal.depth = 4;
 
-      const by = makeButton(this.add.image(400, 330, 'button'), function () {
-        window.location.replace('index.html');
+      const by = makeButton(this.add.image(400, 330, 'button'), function() {
+        window.location.replace('miner/prizes.html');
       });
-      const bn = makeButton(this.add.image(400, 380, 'button'), function () {
+      const bn = makeButton(this.add.image(400, 380, 'button'), function() {
         // console.log(this.scene);
-        location.reload()
-
-        // this.scene.restart();
-        // game.scene.stop();
-        // game.destroy();
-        // $('canvas').first().remove();
-        // game = new Phaser.Game(config)
-        // game.scene.start(config);
-      });
-      by.depth = bn.depth = 4;
+        // location.reload();
+        money = 0;
+        for (const i in player_stats) {
+          player_stats[i] = 1;
+        }
+        this.scene.restart();
+      }.bind(this));
+      by.depth = bn.depth = 5;
 
       const ttText = this.add.text(400, 228, lang.exitModal.title, {
         font: '36px Helvetica', fill: '#000', fontWeight: '200', align: 'center'
       });
       ttText.setOrigin(0.5, 0.5);
-      ttText.depth = 5;
+      ttText.depth = 6;
 
       const yText = this.add.text(400, 328, lang.exitModal.yes, {
         font: bigFont, fill: '#fff',
       });
       yText.setOrigin(0.5, 0.5);
-      yText.depth = 5;
+      yText.depth = 6;
 
       const nText = this.add.text(400, 380, lang.exitModal.no, {
         font: bigFont, fill: '#fff',
       });
       nText.setOrigin(0.5, 0.5);
-      nText.depth = 5;
+      nText.depth = 6;
 
 
     }

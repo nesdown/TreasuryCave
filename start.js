@@ -22,7 +22,7 @@ $('#submit-form').on('click', function (e) {
   player_name = document.getElementById('nickname').value;
   player_phone = document.getElementById('phone').value;
   window.doSendInfs = true;
-  console.log(dateStr);
+  // console.log(dateStr);
   show_instructions();
 });
 
