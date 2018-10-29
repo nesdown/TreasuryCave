@@ -9,6 +9,8 @@ window.cll300 = false;
 let added300 = false;
 let shouldConfirmLeave = true;
 
+setTimeout(updateMoney, 1000);
+
 window.config = {
   type: Phaser.CANVAS,
   width: 800,
@@ -111,9 +113,9 @@ let is_digging = false;
 let is_regenerated = false;
 
 var background;
-const bigFont = '40px \'Raleway\'';
-const smallFont = '15px \'Raleway\'';
-const midFont = '16px \'Raleway\'';
+const bigFont = '40px \'Helvetica\'';
+const smallFont = '15px \'Helvetica\'';
+const midFont = '16px \'Helvetica\'';
 
 let money_text;
 let lightning_text;
