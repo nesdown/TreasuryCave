@@ -78,12 +78,12 @@ $('#submit-form, #disclaimer').on('click', function(e) {
 
 });
 
-window.onbeforeunload = function(e) {
-  if (shouldConfirmLeave) {
-    e.returnValue = 'Are u sure?';
-    return 'are u sure?';
-  }
-}
+// window.onbeforeunload = function(e) {
+//   if (shouldConfirmLeave) {
+//     e.returnValue = 'Are u sure?';
+//     return 'are u sure?';
+//   }
+// }
 
 window.onunload = function() {
   endGame();
@@ -590,7 +590,7 @@ function clickEmitter() {
   clickBlocked = true;
   setTimeout(() => {
     clickBlocked = false;
-  }, 500);
+  }, 1000);
   // throw stone if needed
   if (clickCnt >= 400) {
     const rnd = Math.random() > 0.6667;
