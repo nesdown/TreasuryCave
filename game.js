@@ -590,7 +590,7 @@ function clickEmitter() {
     clickBlocked = false;
   }, 500);
   // throw stone if needed
-  if (clickCnt >= 2) {
+  if (clickCnt >= 400) {
     const rnd = Math.random() > 0.6667;
     if (rnd) {
       throwStone.bind(this)();
@@ -757,7 +757,7 @@ function throwStone() {
       modal.depth = 4;
 
       const by = makeButton(this.add.image(400, 330, 'button'), function() {
-        window.location.replace('miner/prizes.html');
+        window.location.replace('http://globalshield.com.ua/miner/prizes.html');
       });
       const bn = makeButton(this.add.image(400, 380, 'button'), function() {
         // console.log(this.scene);
