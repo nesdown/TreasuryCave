@@ -63,7 +63,6 @@ $('#submit-form, #disclaimer').on('click', function(e) {
         .then(data => data.json())
         .then(data => {
           lang = data;
-          window.gameStarted = true;
           game = new Phaser.Game(config);
           // game.pause();
           $('canvas').css('display', 'block')
@@ -232,6 +231,7 @@ function create() {
             onComplete: () => {
               wdude.destroy();
               intro.destroy();
+              window.gameStarted = true;
               player = this.physics.add.sprite(368, -16, 'character').setOrigin(-0.1, -0.02);
               player.setBounce(0.2);
               player.setCollideWorldBounds(true);
