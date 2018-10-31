@@ -41,6 +41,7 @@ let clickBlocked = false;
 var game = null;
 
 const STONE_CRACKS = 2;
+const STONE_BREAK_TIME = 400;
 const luckPrices = [100, 300, 600, 1200, 2400];
 const eqPrices = [300, 900, 1800, 3600, 7200];
 const hpPrices = [500, 1000, 3500, 7000, 10000];
@@ -275,7 +276,7 @@ function create() {
   this.anims.create({
     key: 'kick',
     frames: this.anims.generateFrameNumbers('character', { start: 4, end: 6 }),
-    frameRate: 10,
+    frameRate: 20,
     repeat: -1
   });
 
@@ -590,7 +591,7 @@ function clickEmitter() {
   clickBlocked = true;
   setTimeout(() => {
     clickBlocked = false;
-  }, 1000);
+  }, STONE_BREAK_TIME);
   // throw stone if needed
   if (clickCnt >= 400) {
     const rnd = Math.random() > 0.6667;
@@ -611,7 +612,8 @@ function clickEmitter() {
 
     blocks.children.iterate((child) => {
       const dsBlock = (x, y) => {
-        if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) || child.y == (parseInt(player.y) + 66 + y))) {
+        if (child.x == 368 + x && (child.y == (parseInt(player.y) + 65 + y) ||
+          child.y == (parseInt(player.y) + 66 + y))) {
           if (stoneLife > 0) {
             const crTex = this.add.image(x + 368, y + player.y + 65, 'crack');
             crTex.setOrigin(0, 0);
@@ -690,7 +692,7 @@ function clickEmitter() {
     else
       is_regenerated = false;
 
-  }, 1000);
+  }, STONE_BREAK_TIME);
 
 
   // console.log('A click was emitted');
