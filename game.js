@@ -276,7 +276,7 @@ function create() {
   this.anims.create({
     key: 'kick',
     frames: this.anims.generateFrameNumbers('character', { start: 4, end: 6 }),
-    frameRate: 20,
+    frameRate: 15,
     repeat: -1
   });
 

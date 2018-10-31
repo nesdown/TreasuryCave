@@ -26,7 +26,8 @@ module.exports = (env) => ({
   ],
   devtool: 'source-map',
   devServer: {
-    host: '0.0.0.0',
+    // host: '0.0.0.0',
+    host: 'kraftwerk28.pp.ua',
     port: 8080,
     overlay: true,
     stats: 'minimal',
