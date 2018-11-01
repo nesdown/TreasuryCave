@@ -453,8 +453,8 @@ function regenerate_world() {
   blocks.children.iterate(function(dead) {
     if (dead && dead.y < -16) {
       // dead.disableBody(true, true);
-      console.log(blocks.remove(dead, true, true) ? 'block removed' : 'block NOT removed');
-
+      blocks.remove(dead, true, true);
+      // console.log(blocks.remove(dead, true, true) ? 'block removed' : 'block NOT removed');
       // console.log('A block was removed');
     }
   });
