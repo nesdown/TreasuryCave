@@ -3,7 +3,7 @@
 import Phaser from 'phaser';
 import dataLinker from './start';
 
-const testMode = false;
+const testMode = true;
 window.gmFreezd = true;
 window.cll300 = false;
 let added300 = false;
@@ -41,10 +41,10 @@ let clickBlocked = false;
 var game = null;
 
 const STONE_CRACKS = 2;
-const STONE_BREAK_TIME = 400;
+const STONE_BREAK_TIME = 1000;
 const luckPrices = [100, 300, 600, 1200, 2400];
 const eqPrices = [300, 900, 1800, 3600, 7200];
-const hpPrices = [500, 1000, 3500, 7000, 10000];
+const hpPrices = [500, 1000, 2000, 4000, 8000];
 let crackTextures = [];
 
 let stoneLife = STONE_CRACKS;
@@ -276,7 +276,7 @@ function create() {
   this.anims.create({
     key: 'kick',
     frames: this.anims.generateFrameNumbers('character', { start: 4, end: 6 }),
-    frameRate: 15,
+    frameRate: 10,
     repeat: -1
   });
 
@@ -602,7 +602,7 @@ function clickEmitter() {
     clickBlocked = false;
   }, STONE_BREAK_TIME);
   // throw stone if needed
-  if (clickCnt >= 400) {
+  if (clickCnt >= 2) {
     const rnd = Math.random() > 0.6667;
     if (rnd) {
       throwStone.bind(this)();
@@ -735,12 +735,14 @@ function updateMoney() {
 }
 
 function throwStone() {
-
   stone = this.physics.add.sprite(368, -16, 'stone').setOrigin(-0.1, -0.02);
   stone.anims.play('stonefall', true);
   stone.setBounce(1);
   this.physics.add.overlap(stone, blocks, function() {
     player_stats.hp--;
+    hpPrices.shift();
+    hpPrices.push(hpPrices[hpPrices.length - 1] * 2);
+    updateMoney();
     this.add.tween({
       targets: stone,
       ease: 'Sine.easeInOut',
