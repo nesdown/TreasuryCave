@@ -3,7 +3,7 @@
 import Phaser from 'phaser';
 import dataLinker from './start';
 
-const testMode = true;
+const testMode = false;
 window.gmFreezd = true;
 window.cll300 = false;
 let added300 = false;
@@ -602,7 +602,7 @@ function clickEmitter() {
     clickBlocked = false;
   }, STONE_BREAK_TIME);
   // throw stone if needed
-  if (clickCnt >= 2) {
+  if (clickCnt >= 400) {
     const rnd = Math.random() > 0.6667;
     if (rnd) {
       throwStone.bind(this)();
