@@ -409,17 +409,13 @@ function regenerate_world() {
   // Here we generate a new part of the world
   for (let y = 624; y < 1136; y += 64) {
     for (let x = -16; x < 784; x += 64) {
-      let rand_seed = Phaser.Math.Between(0, 4000);
+      const rand_seed = Phaser.Math.Between(0, 4000);
 
       if (rand_seed % 5 == 0) {
         blocks.create(x, y, 'rock').setOrigin(0, 0);
-      }
-
-      else if (rand_seed % 4 == 0) {
+      } else if (rand_seed % 4 == 0) {
         blocks.create(x, y, 'gold').setOrigin(0, 0);
-      }
-
-      else {
+      } else {
         blocks.create(x, y, 'ground').setOrigin(0, 0);
       }
     }
@@ -431,8 +427,21 @@ function regenerate_world() {
     // for(let i = 0; i < 20; i++) {
     //   setTimeout(function() { platform.y -= 10; platform.body.y -= 10;  player.y -= 10;}, 500);
     // }
-    platform.y -= 448;
-    platform.body.y -= 448;
+    if (platform !== undefined) {
+      platform.y -= 448;
+      platform.body.y -= 448;
+
+      if (platform.y < -16) {
+        // dead.disableBody(true, true);
+        console.log(blocks.remove(platform, true, true) ? 'block removed' : 'block NOT removed');
+
+        // console.log('A block was removed');
+      }
+
+    } else {
+      // blocks.remove(platform, true, true);
+    }
+
   })
   player.y -= 700;
   // player.y -= 400;
@@ -444,7 +453,7 @@ function regenerate_world() {
   blocks.children.iterate(function(dead) {
     if (dead && dead.y < -16) {
       // dead.disableBody(true, true);
-      // console.log(blocks.remove(dead, true, true) ? 'block removed' : 'block NOT removed');
+      console.log(blocks.remove(dead, true, true) ? 'block removed' : 'block NOT removed');
 
       // console.log('A block was removed');
     }
