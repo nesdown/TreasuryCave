@@ -89,7 +89,7 @@ window.onunload = function() {
   endGame();
 }
 
-var money = 0;
+var money = 198;
 var lightnings = 0;
 
 let blocks, goldblocks, rockblocks, groundblocks;
@@ -636,6 +636,7 @@ function clickEmitter() {
             if (addition > 0 && money % 200 === 0) {
               lightnings++;
             }
+            updateMoney();
 
             child.disableBody(true, false);
             this.add.tween({
